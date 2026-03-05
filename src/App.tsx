@@ -438,6 +438,8 @@ export default function App() {
 
       if (fetchError) throw fetchError;
 
+      setIsReturning(!!existingGuest); // Real-time check for the message type
+
       let result;
       if (existingGuest) {
         // Update existing
