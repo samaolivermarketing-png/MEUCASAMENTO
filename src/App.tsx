@@ -106,7 +106,7 @@ const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
       {/* Photo Header */}
       <div className="w-full h-[55vh] relative">
         <img
-          src="/eu e amor.jpg"
+          src="/hero.webp"
           alt="Samuel & Lília"
           className="w-full h-full object-cover"
         />
@@ -153,9 +153,9 @@ const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
           </motion.div>
           <button
             onClick={onStart}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center border border-wedding-olive/20 hover:scale-110 active:scale-95 transition-all group"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center border border-wedding-olive/20 hover:scale-110 active:scale-95 transition-all group overflow-hidden"
           >
-            <Ship className="text-wedding-olive group-hover:rotate-12 transition-transform" size={32} />
+            <img src="/icon concha.webp" alt="icon" className="w-12 h-12 object-contain group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
