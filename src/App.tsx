@@ -91,9 +91,9 @@ const BottomNav = ({ activeTab, onTabChange, isConfirmed }: { activeTab: Tab; on
 
 // --- Screens ---
 
-const RSVPScreen = ({ onConfirm }: { onConfirm: (name: string, email: string) => void }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+const RSVPScreen = ({ onConfirm, initialName = '', initialEmail = '' }: { onConfirm: (name: string, email: string) => void; initialName?: string; initialEmail?: string }) => {
+  const [name, setName] = useState(initialName);
+  const [email, setEmail] = useState(initialEmail);
 
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,7 +227,7 @@ const AdminScreen = () => {
   );
 };
 
-const MapaManualScreen = () => {
+const MapaManualScreen = ({ confirmationDate }: { confirmationDate?: string | null }) => {
   const manualItems = [
     {
       title: "Fotografia",
@@ -306,9 +306,21 @@ const MapaManualScreen = () => {
           <div className="space-y-1">
             <h3 className="font-serif font-bold text-xl text-stone-800">Cerimônia na Praia</h3>
             <p className="text-wedding-earth font-medium text-sm">R. Benjamin de Souza, 111 - São Tomé, 14:30</p>
-            <p className="text-stone-400 text-xs uppercase tracking-widest">Domingo, 19 de Abril de 2026</p>
+            <p className="text-stone-400 text-xs uppercase tracking-widest">Atendimento: Domingo, 19 de Abril de 2026</p>
           </div>
         </div>
+
+        {confirmationDate && (
+          <div className="bg-green-50 rounded-2xl p-4 border border-green-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="text-green-600" size={18} />
+              <span className="text-green-800 font-bold text-sm">Sua Presença Está Confirmada!</span>
+            </div>
+            <span className="text-green-600 text-[10px] font-medium uppercase tracking-wider">
+              Em: {new Date(confirmationDate).toLocaleDateString()}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Seção Manual */}
@@ -356,6 +368,8 @@ export default function App() {
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [guestName, setGuestName] = React.useState('');
   const [guestEmail, setGuestEmail] = React.useState('');
+  const [confirmationDate, setConfirmationDate] = React.useState<string | null>(null);
+  const [isReturning, setIsReturning] = React.useState(false);
 
   // Load saved guest info on mount
   React.useEffect(() => {
@@ -366,10 +380,7 @@ export default function App() {
       if (savedName && savedEmail) {
         setGuestName(savedName);
         setGuestEmail(savedEmail);
-        setIsConfirmed(true);
-        setActiveTab('mapa');
 
-        // Verify if record exists in Supabase (optional, but good for sync)
         try {
           const { data } = await supabase
             .from('convidados')
@@ -379,6 +390,8 @@ export default function App() {
 
           if (data) {
             setGuestName(data.nome);
+            setConfirmationDate(data.created_at);
+            setIsReturning(true);
           }
         } catch (error) {
           console.error('Erro ao sincronizar com o Supabase:', error);
@@ -389,27 +402,36 @@ export default function App() {
     loadSavedGuest();
   }, []);
 
+  // Sequential Redirection Logic
+  React.useEffect(() => {
+    let timer: number;
+    if (isConfirmed) {
+      timer = window.setTimeout(() => {
+        setActiveTab('mapa');
+      }, 4000); // Give 4 seconds to read the message
+    }
+    return () => clearTimeout(timer);
+  }, [isConfirmed]);
+
   const handleConfirm = async (name: string, email: string) => {
     try {
-      // Save to Supabase
-      const { error } = await supabase
+      // Upsert to handle multiple confirmations
+      const { data, error } = await supabase
         .from('convidados')
-        .insert([{ nome: name, email: email }]);
+        .upsert([{ nome: name, email: email }], { onConflict: 'email' })
+        .select()
+        .single();
 
       if (error) throw error;
 
       setGuestName(name);
       setGuestEmail(email);
+      setConfirmationDate(data.created_at);
       setIsConfirmed(true);
 
       // Keep local copy for quick access
       localStorage.setItem('wedding_guest_name', name);
       localStorage.setItem('wedding_guest_email', email);
-
-      // Navegação em cadeia: após confirmar, vai para o mapa
-      setTimeout(() => {
-        setActiveTab('mapa');
-      }, 1500);
     } catch (error) {
       console.error('Erro ao confirmar presença:', error);
       alert('Houve um problema ao confirmar sua presença. Por favor, tente novamente ou entre em contato diretamente conosco.');
@@ -428,17 +450,29 @@ export default function App() {
             <div className="w-24 h-24 bg-wedding-olive/10 rounded-full flex items-center justify-center">
               <CheckCircle2 className="text-wedding-olive" size={48} />
             </div>
-            <div className="space-y-2">
-              <h2 className="text-3xl font-serif font-bold text-wedding-olive">Obrigado, {guestName}!</h2>
-              <p className="text-stone-600 italic font-serif">Sua presença foi confirmada com sucesso.</p>
+            <div className="space-y-4">
+              <h2 className="text-3xl font-serif font-bold text-wedding-olive">
+                {isReturning ? 'Bem vindo de volta!' : `Obrigado, ${guestName}!`}
+              </h2>
+              <p className="text-stone-600 italic font-serif leading-relaxed">
+                {isReturning
+                  ? "confira novamente e quantas vez for preciso, mas não deixe de se preparar para esse grande dia!"
+                  : "Sua presença foi confirmada com sucesso."}
+              </p>
             </div>
-            <p className="text-stone-400 text-sm animate-pulse">Redirecionando para o local...</p>
+            <p className="text-stone-300 text-[10px] uppercase tracking-widest animate-pulse">
+              Redirecionando para o manual em instantes...
+            </p>
           </motion.div>
         ) : (
-          <RSVPScreen onConfirm={handleConfirm} />
+          <RSVPScreen
+            onConfirm={handleConfirm}
+            initialName={guestName}
+            initialEmail={guestEmail}
+          />
         );
       case 'mapa':
-        return <MapaManualScreen />;
+        return <MapaManualScreen confirmationDate={confirmationDate} />;
       case 'admin':
         return <AdminScreen />;
       default:
