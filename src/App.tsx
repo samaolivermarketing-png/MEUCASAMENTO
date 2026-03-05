@@ -711,7 +711,7 @@ export default function App() {
       {activeTab !== 'welcome' && (
         <Header
           title="Samuel & Lília"
-          onBack={activeTab !== 'rsvp' ? () => onTabChange('rsvp') : undefined}
+          onBack={() => activeTab === 'rsvp' ? setActiveTab('welcome') : onTabChange('rsvp')}
         />
       )}
 
