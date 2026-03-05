@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   MapPin,
   ChevronLeft,
-  Ship,
   BookOpen,
   Shirt,
   Camera,
@@ -205,7 +204,7 @@ const RSVPScreen = ({ onConfirm, onAdminClick, initialName = '', initialEmail = 
     >
       <div className="text-center space-y-2">
         <div className="flex justify-center mb-4">
-          <Ship className="text-wedding-olive" size={40} />
+          <img src="/icon concha.webp" alt="Concha" className="w-12 h-12 object-contain" />
         </div>
         <h2 className="text-5xl font-script text-wedding-gold">Confirmação</h2>
         <p className="text-stone-600 text-sm italic font-serif max-w-[240px] mx-auto">
@@ -643,7 +642,13 @@ export default function App() {
   if (appLoading) {
     return (
       <div className="min-h-screen bg-wedding-cream flex flex-col items-center justify-center p-6 gap-4">
-        <Ship className="text-wedding-olive animate-bounce" size={48} />
+        <motion.img
+          src="/icon concha.webp"
+          alt="Carregando"
+          className="w-16 h-16 object-contain"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        />
         <p className="text-wedding-olive font-serif italic">Preparando seu convite...</p>
       </div>
     );
