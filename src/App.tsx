@@ -15,14 +15,16 @@ import {
   Smartphone,
   Clock,
   ShieldCheck,
-  Users
+  Users,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { supabase } from './lib/supabase';
 
 
 // --- Types ---
-type Tab = 'rsvp' | 'mapa' | 'admin';
+type Tab = 'rsvp' | 'mapa' | 'admin' | 'adminLogin';
 
 // --- Components ---
 
@@ -91,7 +93,7 @@ const BottomNav = ({ activeTab, onTabChange, isConfirmed }: { activeTab: Tab; on
 
 // --- Screens ---
 
-const RSVPScreen = ({ onConfirm, initialName = '', initialEmail = '' }: { onConfirm: (name: string, email: string) => void; initialName?: string; initialEmail?: string }) => {
+const RSVPScreen = ({ onConfirm, onAdminClick, initialName = '', initialEmail = '' }: { onConfirm: (name: string, email: string) => void; onAdminClick?: () => void; initialName?: string; initialEmail?: string }) => {
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
 
@@ -156,13 +158,75 @@ const RSVPScreen = ({ onConfirm, initialName = '', initialEmail = '' }: { onConf
         </button>
       </div>
 
-      <div className="w-full aspect-video rounded-3xl overflow-hidden shadow-md">
+      <div className="w-full aspect-video rounded-3xl overflow-hidden shadow-md relative">
         <img
           src="/eu e amor.jpg"
           alt="Samuel & Lília"
           className="w-full h-full object-cover"
         />
+        {/* Botão Admin Secreto - Agora na tela principal embaixo da foto */}
+        {onAdminClick && (
+          <button
+            onClick={onAdminClick}
+            className="absolute bottom-2 right-2 p-2 opacity-0 hover:opacity-100 transition-opacity text-white/50 hover:text-white"
+            title="Área dos Noivos"
+          >
+            <Lock size={16} />
+          </button>
+        )}
       </div>
+    </motion.div>
+  );
+};
+
+const AdminLoginScreen = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'noivos2026') {
+      onLoginSuccess();
+    } else {
+      setError('Senha incorreta.');
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="flex flex-col items-center px-6 py-12 gap-8"
+    >
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-4">
+          <Lock className="text-wedding-olive" size={40} />
+        </div>
+        <h2 className="text-3xl font-serif text-stone-800">Acesso Restrito</h2>
+        <p className="text-stone-500 text-sm">Área exclusiva dos noivos</p>
+      </div>
+
+      <form onSubmit={handleLogin} className="w-full bg-white rounded-3xl p-8 shadow-sm border border-stone-100 space-y-6">
+        <div className="space-y-2">
+          <label className="text-stone-600 font-serif text-sm block">Senha de Acesso</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(''); }}
+            className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-wedding-olive/20 transition-all font-sans text-center tracking-widest"
+            placeholder="••••••••"
+          />
+          {error && <p className="text-red-500 text-xs text-center mt-2 animate-pulse">{error}</p>}
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-3 bg-wedding-olive text-white font-bold rounded-xl shadow-lg hover:bg-wedding-olive/90 transition-all flex justify-center items-center gap-2"
+        >
+          <Unlock size={18} /> Entrar no Painel
+        </button>
+      </form>
     </motion.div>
   );
 };
@@ -378,6 +442,7 @@ export default function App() {
   const [guestEmail, setGuestEmail] = React.useState('');
   const [confirmationDate, setConfirmationDate] = React.useState<string | null>(null);
   const [isReturning, setIsReturning] = React.useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = React.useState(false);
   const [appLoading, setAppLoading] = React.useState(true);
 
   // Load saved guest info on mount
@@ -529,14 +594,22 @@ export default function App() {
             onConfirm={handleConfirm}
             initialName={guestName}
             initialEmail={guestEmail}
+            onAdminClick={() => setActiveTab(isAdminAuthenticated ? 'admin' : 'adminLogin')}
           />
         );
       case 'mapa':
         return <MapaManualScreen confirmationDate={confirmationDate} guestName={guestName} />;
+      case 'adminLogin':
+        return <AdminLoginScreen onLoginSuccess={() => { setIsAdminAuthenticated(true); setActiveTab('admin'); }} />;
       case 'admin':
+        if (!isAdminAuthenticated) {
+          // Redireciona sutilmente para o login se tentar burlar
+          setTimeout(() => setActiveTab('adminLogin'), 0);
+          return null;
+        }
         return <AdminScreen />;
       default:
-        return <RSVPScreen onConfirm={handleConfirm} />;
+        return <RSVPScreen onConfirm={handleConfirm} onAdminClick={() => setActiveTab(isAdminAuthenticated ? 'admin' : 'adminLogin')} />;
     }
   };
 
@@ -554,19 +627,10 @@ export default function App() {
       </main>
 
       <BottomNav
-        activeTab={activeTab === 'admin' ? 'rsvp' : activeTab}
+        activeTab={activeTab === 'admin' || activeTab === 'adminLogin' ? 'rsvp' : activeTab}
         onTabChange={onTabChange}
         isConfirmed={isConfirmed || isReturning} // Permite acessar manual se já for um conhecido
       />
-
-      {/* Botão Admin Discreto */}
-      <button
-        onClick={() => onTabChange(activeTab === 'admin' ? 'rsvp' : 'admin')}
-        className="fixed bottom-1 right-1 z-[60] p-1 opacity-10 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 text-stone-400"
-        title="Admin"
-      >
-        <ShieldCheck size={12} />
-      </button>
     </div>
   );
 }
