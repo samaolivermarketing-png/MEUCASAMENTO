@@ -233,7 +233,7 @@ const AdminScreen = () => {
   );
 };
 
-const MapaManualScreen = ({ confirmationDate }: { confirmationDate?: string | null }) => {
+const MapaManualScreen = ({ confirmationDate, guestName }: { confirmationDate?: string | null; guestName?: string }) => {
   const manualItems = [
     {
       title: "Fotografia",
@@ -317,12 +317,14 @@ const MapaManualScreen = ({ confirmationDate }: { confirmationDate?: string | nu
         </div>
 
         {confirmationDate && (
-          <div className="bg-green-50 rounded-2xl p-4 border border-green-100 flex items-center justify-between">
+          <div className="bg-green-50 rounded-2xl p-4 border border-green-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="text-green-600" size={18} />
-              <span className="text-green-800 font-bold text-sm">Sua Presença Está Confirmada!</span>
+              <CheckCircle2 className="text-green-600 shrink-0" size={18} />
+              <span className="text-green-800 font-bold text-sm">
+                {guestName ? `${guestName.split(' ')[0]}, sua presença está confirmada! 🥂` : 'Sua presença está confirmada! 🥂'}
+              </span>
             </div>
-            <span className="text-green-600 text-[10px] font-medium uppercase tracking-wider">
+            <span className="text-green-600 text-[10px] font-medium uppercase tracking-wider whitespace-nowrap">
               Em: {new Date(confirmationDate).toLocaleDateString()}
             </span>
           </div>
@@ -530,7 +532,7 @@ export default function App() {
           />
         );
       case 'mapa':
-        return <MapaManualScreen confirmationDate={confirmationDate} />;
+        return <MapaManualScreen confirmationDate={confirmationDate} guestName={guestName} />;
       case 'admin':
         return <AdminScreen />;
       default:
