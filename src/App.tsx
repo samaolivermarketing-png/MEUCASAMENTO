@@ -24,7 +24,7 @@ import { supabase } from './lib/supabase';
 
 
 // --- Types ---
-type Tab = 'rsvp' | 'mapa' | 'admin' | 'adminLogin';
+type Tab = 'welcome' | 'rsvp' | 'mapa' | 'admin' | 'adminLogin';
 
 // --- Components ---
 
@@ -92,6 +92,92 @@ const BottomNav = ({ activeTab, onTabChange, isConfirmed }: { activeTab: Tab; on
 };
 
 // --- Screens ---
+
+// --- Welcome Screen Component ---
+
+const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-wedding-cream flex flex-col items-center relative overflow-hidden"
+    >
+      {/* Photo Header */}
+      <div className="w-full h-[55vh] relative">
+        <img
+          src="/eu e amor.jpg"
+          alt="Samuel & Lília"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-wedding-cream via-transparent to-transparent" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-start px-6 -mt-12 z-10 text-center gap-6">
+        <p className="text-stone-600 font-serif italic text-sm max-w-[280px] leading-relaxed">
+          "Grandes coisas fez o Senhor por nós, e, por isso, estamos alegres."
+          <span className="block mt-1 font-bold not-italic">Salmos 126:3</span>
+        </p>
+
+        <div className="space-y-1">
+          <h1 className="text-6xl font-script text-wedding-gold">Samuel & Lília</h1>
+          <p className="text-stone-500 font-serif uppercase tracking-[0.2em] text-xs">
+            Convidam para o seu casamento
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-stone-800 font-serif font-bold text-lg">19 DE ABRIL, 2026 ÀS 14:30</p>
+        </div>
+
+        {/* Circular Action Button */}
+        <div className="relative mt-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="w-32 h-32 flex items-center justify-center"
+          >
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <path
+                id="circlePath"
+                d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
+                fill="none"
+              />
+              <text className="text-[9px] font-serif fill-wedding-gold uppercase tracking-[0.1em] font-bold">
+                <textPath xlinkHref="#circlePath">
+                  CLIQUE AQUI • CLIQUE AQUI • CLIQUE AQUI • CLIQUE AQUI •
+                </textPath>
+              </text>
+            </svg>
+          </motion.div>
+          <button
+            onClick={onStart}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center border border-wedding-olive/20 hover:scale-110 active:scale-95 transition-all group"
+          >
+            <Ship className="text-wedding-olive group-hover:rotate-12 transition-transform" size={32} />
+          </button>
+        </div>
+      </div>
+
+      {/* Wave/Foam Bottom Effect */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+        <svg viewBox="0 0 1440 320" className="w-full h-auto translate-y-8 origin-bottom scale-110">
+          <path
+            fill="#ffffff"
+            fillOpacity="1"
+            d="M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,165.3C672,139,768,117,864,138.7C960,160,1056,224,1152,245.3C1248,267,1344,245,1392,234.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
+          <path
+            fill="#ffffff"
+            fillOpacity="0.5"
+            d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,139,864,144C960,149,1056,139,1152,122.7C1248,107,1344,85,1392,74.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          ></path>
+        </svg>
+      </div>
+    </motion.div>
+  );
+};
 
 const RSVPScreen = ({ onConfirm, onAdminClick, initialName = '', initialEmail = '' }: { onConfirm: (name: string, email: string) => void; onAdminClick?: () => void; initialName?: string; initialEmail?: string }) => {
   const [name, setName] = useState(initialName);
@@ -436,7 +522,7 @@ const MapaManualScreen = ({ confirmationDate, guestName }: { confirmationDate?: 
 // --- Main App ---
 
 export default function App() {
-  const [activeTab, setActiveTab] = React.useState<Tab>('rsvp');
+  const [activeTab, setActiveTab] = React.useState<Tab>('welcome');
   const [isConfirmed, setIsConfirmed] = React.useState(false);
   const [guestName, setGuestName] = React.useState('');
   const [guestEmail, setGuestEmail] = React.useState('');
@@ -565,6 +651,8 @@ export default function App() {
 
   const renderScreen = () => {
     switch (activeTab) {
+      case 'welcome':
+        return <WelcomeScreen onStart={() => setActiveTab('rsvp')} />;
       case 'rsvp':
         return isConfirmed ? (
           <motion.div
@@ -626,11 +714,13 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      <BottomNav
-        activeTab={activeTab === 'admin' || activeTab === 'adminLogin' ? 'rsvp' : activeTab}
-        onTabChange={onTabChange}
-        isConfirmed={isConfirmed || isReturning} // Permite acessar manual se já for um conhecido
-      />
+      {activeTab !== 'welcome' && (
+        <BottomNav
+          activeTab={activeTab === 'admin' || activeTab === 'adminLogin' ? 'rsvp' : activeTab}
+          onTabChange={onTabChange}
+          isConfirmed={isConfirmed || isReturning} // Permite acessar manual se já for um conhecido
+        />
+      )}
     </div>
   );
 }
