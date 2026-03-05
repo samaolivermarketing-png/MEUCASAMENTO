@@ -456,8 +456,8 @@ const MapaManualScreen = ({ confirmationDate, guestName }: { confirmationDate?: 
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100 flex items-start gap-4">
-          <div className="p-4 bg-wedding-cream rounded-2xl">
-            <Ship className="text-wedding-olive" size={28} />
+          <div className="p-3 bg-wedding-cream rounded-2xl flex items-center justify-center w-16 h-16 shrink-0">
+            <img src="/icon concha.webp" alt="Concha" className="w-10 h-10 object-contain" />
           </div>
           <div className="space-y-1">
             <h3 className="font-serif font-bold text-xl text-stone-800">Cerimônia na Praia</h3>
@@ -703,10 +703,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen max-w-md mx-auto bg-wedding-cream relative shadow-2xl overflow-x-hidden">
-      <Header
-        title="Samuel & Lília"
-        onBack={activeTab !== 'rsvp' ? () => onTabChange('rsvp') : undefined}
-      />
+      {activeTab !== 'welcome' && (
+        <Header
+          title="Samuel & Lília"
+          onBack={activeTab !== 'rsvp' ? () => onTabChange('rsvp') : undefined}
+        />
+      )}
 
       <main className="relative">
         <AnimatePresence mode="wait">
