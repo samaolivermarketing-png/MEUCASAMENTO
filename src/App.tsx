@@ -376,32 +376,38 @@ export default function App() {
   const [guestEmail, setGuestEmail] = React.useState('');
   const [confirmationDate, setConfirmationDate] = React.useState<string | null>(null);
   const [isReturning, setIsReturning] = React.useState(false);
+  const [appLoading, setAppLoading] = React.useState(true);
 
   // Load saved guest info on mount
   React.useEffect(() => {
     const loadSavedGuest = async () => {
-      const savedName = localStorage.getItem('wedding_guest_name');
-      const savedEmail = localStorage.getItem('wedding_guest_email');
+      setAppLoading(true);
+      try {
+        const savedName = localStorage.getItem('wedding_guest_name');
+        const savedEmail = localStorage.getItem('wedding_guest_email');
 
-      if (savedName && savedEmail) {
-        setGuestName(savedName);
-        setGuestEmail(savedEmail);
+        if (savedName && savedEmail) {
+          setGuestName(savedName);
+          setGuestEmail(savedEmail);
 
-        try {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('convidados')
             .select('*')
             .eq('email', savedEmail)
-            .single();
+            .maybeSingle();
 
           if (data) {
             setGuestName(data.nome);
+            setGuestEmail(data.email);
             setConfirmationDate(data.created_at);
             setIsReturning(true);
           }
-        } catch (error) {
-          console.error('Erro ao sincronizar com o Supabase:', error);
+          if (error) console.error('Erro Supabase:', error);
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setAppLoading(false);
       }
     };
 
@@ -414,57 +420,53 @@ export default function App() {
     if (isConfirmed) {
       timer = window.setTimeout(() => {
         setActiveTab('mapa');
-      }, 4000); // Give 4 seconds to read the message
+      }, 4000);
     }
     return () => clearTimeout(timer);
   }, [isConfirmed]);
 
   const handleConfirm = async (name: string, email: string) => {
     try {
-      console.log('Iniciando confirmação para:', { name, email });
+      console.log('Confirmando:', { name, email });
 
-      // Upsert to handle multiple confirmations
       const { data, error } = await supabase
         .from('convidados')
         .upsert([{ nome: name, email: email }], { onConflict: 'email' })
         .select()
         .single();
 
-      if (error) {
-        console.error('Erro detalhado do Supabase:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      if (!data) {
-        console.warn('Upsert retornou dados vazios, buscando registro novamente...');
-        // Fallback: try to fetch the record if upsert didn't return it
-        const { data: fetchedData } = await supabase
-          .from('convidados')
-          .select('*')
-          .eq('email', email)
-          .single();
-
-        if (fetchedData) {
-          setConfirmationDate(fetchedData.created_at);
-        } else {
-          setConfirmationDate(new Date().toISOString());
-        }
-      } else {
-        setConfirmationDate(data.created_at);
-      }
+      const finalData = data || { nome: name, email: email, created_at: new Date().toISOString() };
 
       setGuestName(name);
       setGuestEmail(email);
+      setConfirmationDate(finalData.created_at);
       setIsConfirmed(true);
 
-      // Keep local copy for quick access
       localStorage.setItem('wedding_guest_name', name);
       localStorage.setItem('wedding_guest_email', email);
     } catch (error: any) {
-      console.error('Erro ao confirmar presença:', error);
-      alert(`Houve um problema ao confirmar sua presença: ${error.message || 'Erro desconhecido'}. Por favor, tente novamente.`);
+      console.error('Erro:', error);
+      alert(`Erro: ${error.message || 'Houve um problema. Tente novamente.'}`);
     }
   };
+
+  const onTabChange = (tab: Tab) => {
+    if (tab === 'rsvp') {
+      setIsConfirmed(false); // Permite ver o formulário novamente
+    }
+    setActiveTab(tab);
+  };
+
+  if (appLoading) {
+    return (
+      <div className="min-h-screen bg-wedding-cream flex flex-col items-center justify-center p-6 gap-4">
+        <Ship className="text-wedding-olive animate-bounce" size={48} />
+        <p className="text-wedding-olive font-serif italic">Preparando seu convite...</p>
+      </div>
+    );
+  }
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -480,12 +482,12 @@ export default function App() {
             </div>
             <div className="space-y-4">
               <h2 className="text-3xl font-serif font-bold text-wedding-olive">
-                {isReturning ? 'Bem vindo de volta!' : `Obrigado, ${guestName}!`}
+                {isReturning ? 'Bem vindo de volta!' : `Obrigado!`}
               </h2>
               <p className="text-stone-600 italic font-serif leading-relaxed">
                 {isReturning
                   ? "confira novamente e quantas vez for preciso, mas não deixe de se preparar para esse grande dia!"
-                  : "Sua presença foi confirmada com sucesso."}
+                  : `${guestName}, sua presença foi confirmada com sucesso.`}
               </p>
             </div>
             <p className="text-stone-300 text-[10px] uppercase tracking-widest animate-pulse">
@@ -512,7 +514,7 @@ export default function App() {
     <div className="min-h-screen max-w-md mx-auto bg-wedding-cream relative shadow-2xl overflow-x-hidden">
       <Header
         title="Samuel & Lília"
-        onBack={activeTab === 'mapa' ? () => setActiveTab('rsvp') : undefined}
+        onBack={activeTab !== 'rsvp' ? () => onTabChange('rsvp') : undefined}
       />
 
       <main className="relative">
@@ -522,14 +524,14 @@ export default function App() {
       </main>
 
       <BottomNav
-        activeTab={activeTab === 'admin' ? 'rsvp' : activeTab} // Keep bottom nav active state reasonable
-        onTabChange={setActiveTab}
-        isConfirmed={isConfirmed}
+        activeTab={activeTab === 'admin' ? 'rsvp' : activeTab}
+        onTabChange={onTabChange}
+        isConfirmed={isConfirmed || isReturning} // Permite acessar manual se já for um conhecido
       />
 
       {/* Botão Admin Discreto */}
       <button
-        onClick={() => setActiveTab(activeTab === 'admin' ? 'rsvp' : 'admin')}
+        onClick={() => onTabChange(activeTab === 'admin' ? 'rsvp' : 'admin')}
         className="fixed bottom-1 right-1 z-[60] p-1 opacity-10 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 text-stone-400"
         title="Admin"
       >
