@@ -152,9 +152,9 @@ const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
           </motion.div>
           <button
             onClick={onStart}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center border border-wedding-olive/20 hover:scale-110 active:scale-95 transition-all group overflow-hidden"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden"
           >
-            <img src="/icon concha.webp" alt="icon" className="w-12 h-12 object-contain group-hover:rotate-12 transition-transform" />
+            <img src="/icon concha.webp" alt="icon" className="w-16 h-16 object-contain group-hover:rotate-12 transition-transform" />
           </button>
         </div>
       </div>
@@ -455,8 +455,8 @@ const MapaManualScreen = ({ confirmationDate, guestName }: { confirmationDate?: 
         </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-stone-100 flex items-start gap-4">
-          <div className="p-3 bg-wedding-cream rounded-2xl flex items-center justify-center w-16 h-16 shrink-0">
-            <img src="/icon concha.webp" alt="Concha" className="w-10 h-10 object-contain" />
+          <div className="flex items-center justify-center w-16 h-16 shrink-0">
+            <img src="/icon concha.webp" alt="Concha" className="w-12 h-12 object-contain" />
           </div>
           <div className="space-y-1">
             <h3 className="font-serif font-bold text-xl text-stone-800">Cerimônia na Praia</h3>
