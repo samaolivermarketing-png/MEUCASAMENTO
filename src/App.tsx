@@ -95,43 +95,73 @@ const BottomNav = ({ activeTab, onTabChange, isConfirmed }: { activeTab: Tab; on
 // --- Welcome Screen Component ---
 
 const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" }
+    }
+  };
+
+  const imageVariants = {
+    hidden: { scale: 1.1, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: { duration: 1.5, ease: "easeOut" }
+    }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
       className="min-h-screen bg-wedding-cream flex flex-col items-center relative overflow-hidden"
     >
       {/* Photo Header */}
-      <div className="w-full h-[55vh] relative">
+      <motion.div variants={imageVariants} className="w-full h-[55vh] relative">
         <img
           src="/hero.webp"
           alt="Samuel & Lília"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-wedding-cream via-transparent to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-start px-6 -mt-12 z-10 text-center gap-6">
-        <p className="text-stone-600 font-serif italic text-sm max-w-[280px] leading-relaxed">
+        <motion.p variants={itemVariants} className="text-stone-600 font-serif italic text-sm max-w-[280px] leading-relaxed">
           "Grandes coisas fez o Senhor por nós, e, por isso, estamos alegres."
           <span className="block mt-1 font-bold not-italic">Salmos 126:3</span>
-        </p>
+        </motion.p>
 
-        <div className="space-y-1">
+        <motion.div variants={itemVariants} className="space-y-1">
           <h1 className="text-6xl font-script text-wedding-gold">Samuel & Lília</h1>
           <p className="text-stone-500 font-serif uppercase tracking-[0.2em] text-xs">
             Convidam para o seu casamento
           </p>
-        </div>
+        </motion.div>
 
-        <div className="space-y-1">
+        <motion.div variants={itemVariants} className="space-y-1">
           <p className="text-stone-800 font-serif font-bold text-lg">19 DE ABRIL, 2026 ÀS 14:30</p>
-        </div>
+        </motion.div>
 
         {/* Circular Action Button */}
-        <div className="relative mt-4">
+        <motion.div variants={itemVariants} className="relative mt-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
@@ -156,11 +186,16 @@ const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
           >
             <img src="/concha_com_circulo.webp" alt="icon" className="w-16 h-16 object-contain group-hover:rotate-12 transition-transform" />
           </button>
-        </div>
+        </motion.div>
       </div>
 
       {/* Wave/Foam Bottom Effect */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 1 }}
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+      >
         <svg viewBox="0 0 1440 320" className="w-full h-auto translate-y-8 origin-bottom scale-110">
           <path
             fill="#ffffff"
@@ -173,7 +208,7 @@ const WelcomeScreen = ({ onStart }: { onStart: () => void }) => {
             d="M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,139,864,144C960,149,1056,139,1152,122.7C1248,107,1344,85,1392,74.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
           ></path>
         </svg>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
