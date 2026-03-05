@@ -95,6 +95,12 @@ const RSVPScreen = ({ onConfirm, initialName = '', initialEmail = '' }: { onConf
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
 
+  // Sync with initial values when they are loaded (async)
+  React.useEffect(() => {
+    if (initialName && !name) setName(initialName);
+    if (initialEmail && !email) setEmail(initialEmail);
+  }, [initialName, initialEmail]);
+
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && email.trim()) {
@@ -415,6 +421,8 @@ export default function App() {
 
   const handleConfirm = async (name: string, email: string) => {
     try {
+      console.log('Iniciando confirmação para:', { name, email });
+
       // Upsert to handle multiple confirmations
       const { data, error } = await supabase
         .from('convidados')
@@ -422,19 +430,39 @@ export default function App() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro detalhado do Supabase:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('Upsert retornou dados vazios, buscando registro novamente...');
+        // Fallback: try to fetch the record if upsert didn't return it
+        const { data: fetchedData } = await supabase
+          .from('convidados')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (fetchedData) {
+          setConfirmationDate(fetchedData.created_at);
+        } else {
+          setConfirmationDate(new Date().toISOString());
+        }
+      } else {
+        setConfirmationDate(data.created_at);
+      }
 
       setGuestName(name);
       setGuestEmail(email);
-      setConfirmationDate(data.created_at);
       setIsConfirmed(true);
 
       // Keep local copy for quick access
       localStorage.setItem('wedding_guest_name', name);
       localStorage.setItem('wedding_guest_email', email);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao confirmar presença:', error);
-      alert('Houve um problema ao confirmar sua presença. Por favor, tente novamente ou entre em contato diretamente conosco.');
+      alert(`Houve um problema ao confirmar sua presença: ${error.message || 'Erro desconhecido'}. Por favor, tente novamente.`);
     }
   };
 
