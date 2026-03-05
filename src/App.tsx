@@ -13,14 +13,16 @@ import {
   Cake,
   Flower2,
   Smartphone,
-  Clock
+  Clock,
+  ShieldCheck,
+  Users
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { supabase } from './lib/supabase';
 
 
 // --- Types ---
-type Tab = 'rsvp' | 'mapa';
+type Tab = 'rsvp' | 'mapa' | 'admin';
 
 // --- Components ---
 
@@ -154,6 +156,72 @@ const RSVPScreen = ({ onConfirm }: { onConfirm: (name: string, email: string) =>
           alt="Samuel & Lília"
           className="w-full h-full object-cover"
         />
+      </div>
+    </motion.div>
+  );
+};
+
+const AdminScreen = () => {
+  const [guests, setGuests] = useState<{ id: string; nome: string; email: string; created_at: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchGuests = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('convidados')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setGuests(data || []);
+      } catch (error) {
+        console.error('Erro ao buscar convidados:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuests();
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="flex flex-col px-6 py-8 pb-32 gap-6"
+    >
+      <div className="text-center space-y-2">
+        <div className="flex justify-center mb-2">
+          <Users className="text-wedding-gold" size={32} />
+        </div>
+        <h2 className="text-3xl font-serif font-bold text-stone-800">Painel de Controle</h2>
+        <div className="inline-block bg-wedding-olive/10 px-4 py-1 rounded-full">
+          <p className="text-wedding-olive font-bold text-sm">
+            {loading ? '---' : guests.length} Confirmados
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {loading ? (
+          <div className="text-center py-10 text-stone-400">Carregando dados...</div>
+        ) : guests.length === 0 ? (
+          <div className="text-center py-10 text-stone-400 font-serif italic">Nenhum convidado confirmado ainda.</div>
+        ) : (
+          guests.map((guest) => (
+            <div key={guest.id} className="bg-white rounded-xl p-4 shadow-sm border border-stone-100 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="font-serif font-bold text-stone-800">{guest.nome}</span>
+                <span className="text-xs text-stone-400">{guest.email}</span>
+              </div>
+              <div className="text-[10px] text-stone-300">
+                {new Date(guest.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </motion.div>
   );
@@ -371,6 +439,8 @@ export default function App() {
         );
       case 'mapa':
         return <MapaManualScreen />;
+      case 'admin':
+        return <AdminScreen />;
       default:
         return <RSVPScreen onConfirm={handleConfirm} />;
     }
@@ -390,10 +460,19 @@ export default function App() {
       </main>
 
       <BottomNav
-        activeTab={activeTab}
+        activeTab={activeTab === 'admin' ? 'rsvp' : activeTab} // Keep bottom nav active state reasonable
         onTabChange={setActiveTab}
         isConfirmed={isConfirmed}
       />
+
+      {/* Botão Admin Discreto */}
+      <button
+        onClick={() => setActiveTab(activeTab === 'admin' ? 'rsvp' : 'admin')}
+        className="fixed bottom-1 right-1 z-[60] p-1 opacity-10 hover:opacity-100 transition-opacity grayscale hover:grayscale-0 text-stone-400"
+        title="Admin"
+      >
+        <ShieldCheck size={12} />
+      </button>
     </div>
   );
 }
