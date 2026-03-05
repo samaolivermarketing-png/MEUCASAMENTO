@@ -429,15 +429,38 @@ export default function App() {
     try {
       console.log('Confirmando:', { name, email });
 
-      const { data, error } = await supabase
+      // Manual "Upsert" logic
+      const { data: existingGuest, error: fetchError } = await supabase
         .from('convidados')
-        .upsert([{ nome: name, email: email }], { onConflict: 'email' })
-        .select()
-        .single();
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
 
-      const finalData = data || { nome: name, email: email, created_at: new Date().toISOString() };
+      let result;
+      if (existingGuest) {
+        // Update existing
+        const { data: updateData, error: updateError } = await supabase
+          .from('convidados')
+          .update({ nome: name })
+          .eq('email', email)
+          .select()
+          .single();
+        if (updateError) throw updateError;
+        result = updateData;
+      } else {
+        // Insert new
+        const { data: insertData, error: insertError } = await supabase
+          .from('convidados')
+          .insert([{ nome: name, email: email }])
+          .select()
+          .single();
+        if (insertError) throw insertError;
+        result = insertData;
+      }
+
+      const finalData = result || { nome: name, email: email, created_at: new Date().toISOString() };
 
       setGuestName(name);
       setGuestEmail(email);
