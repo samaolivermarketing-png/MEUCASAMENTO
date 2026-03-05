@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Casamento Samuel & Lília 💍
 
-# Run and deploy your AI Studio app
+Este é o site oficial para confirmação de presença (RSVP) e informações do casamento de Samuel e Lília.
 
-This contains everything you need to run your app locally.
+## 🚀 Como Executar Localmente
 
-View your app in AI Studio: https://ai.studio/apps/c82ef3b4-75f2-4462-b812-e34a992655d2
+1. **Instalar dependências**:
+   ```bash
+   npm install
+   ```
 
-## Run Locally
+2. **Configurar variáveis de ambiente**:
+   Crie um arquivo `.env` baseado no `.env.example` e adicione suas chaves do Supabase:
+   ```env
+   VITE_SUPABASE_URL=sua_url
+   VITE_SUPABASE_ANON_KEY=sua_chave
+   ```
 
-**Prerequisites:**  Node.js
+3. **Rodar em desenvolvimento**:
+   ```bash
+   npm run dev
+   ```
 
+## ☁️ Deploy na Vercel
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Este projeto já está configurado para a Vercel com:
+- `vercel.json`: Para lidar com roteamento Single Page Application (SPA).
+- Limpeza de dependências para build estável.
+
+### Passos para o Deploy:
+1. Conecte o repositório na Vercel.
+2. Adicione as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no painel da Vercel.
+3. O deploy será feito automaticamente em cada `push`.
+
+## 🛠️ Tecnologias
+- React + Vite
+- Tailwind CSS
+- Supabase (Backend/Banco de dados)
+- Framer Motion (Animações)
+- Lucide React (Ícones)
+
