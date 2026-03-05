@@ -461,8 +461,8 @@ const MapaManualScreen = ({ confirmationDate, guestName }: { confirmationDate?: 
           </div>
           <div className="space-y-1">
             <h3 className="font-serif font-bold text-xl text-stone-800">Cerimônia na Praia</h3>
-            <p className="text-wedding-earth font-medium text-sm">R. Benjamin de Souza, 111 - São Tomé, 14:30</p>
-            <p className="text-stone-400 text-xs uppercase tracking-widest">Atendimento: Domingo, 19 de Abril de 2026</p>
+            <p className="text-wedding-earth font-medium text-sm">R. Benjamin de Souza, 111 - São Tomé</p>
+            <p className="text-stone-400 text-xs uppercase tracking-widest font-bold">Dia do casamento: domingo, 19 de Abril de 2026. às 14;30</p>
           </div>
         </div>
 
