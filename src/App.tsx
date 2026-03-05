@@ -394,12 +394,13 @@ export default function App() {
             .from('convidados')
             .select('*')
             .eq('email', savedEmail)
-            .maybeSingle();
+            .limit(1);
 
-          if (data) {
-            setGuestName(data.nome);
-            setGuestEmail(data.email);
-            setConfirmationDate(data.created_at);
+          if (data && data.length > 0) {
+            const guestData = data[0];
+            setGuestName(guestData.nome);
+            setGuestEmail(guestData.email);
+            setConfirmationDate(guestData.created_at);
             setIsReturning(true);
           }
           if (error) console.error('Erro Supabase:', error);
@@ -430,13 +431,15 @@ export default function App() {
       console.log('Confirmando:', { name, email });
 
       // Manual "Upsert" logic
-      const { data: existingGuest, error: fetchError } = await supabase
+      const { data: existingGuests, error: fetchError } = await supabase
         .from('convidados')
         .select('*')
         .eq('email', email)
-        .maybeSingle();
+        .limit(1);
 
       if (fetchError) throw fetchError;
+
+      const existingGuest = existingGuests && existingGuests.length > 0 ? existingGuests[0] : null;
 
       setIsReturning(!!existingGuest); // Real-time check for the message type
 
@@ -447,19 +450,19 @@ export default function App() {
           .from('convidados')
           .update({ nome: name })
           .eq('email', email)
-          .select()
-          .single();
+          .select();
+
         if (updateError) throw updateError;
-        result = updateData;
+        result = updateData && updateData.length > 0 ? updateData[0] : null;
       } else {
         // Insert new
         const { data: insertData, error: insertError } = await supabase
           .from('convidados')
           .insert([{ nome: name, email: email }])
-          .select()
-          .single();
+          .select();
+
         if (insertError) throw insertError;
-        result = insertData;
+        result = insertData && insertData.length > 0 ? insertData[0] : null;
       }
 
       const finalData = result || { nome: name, email: email, created_at: new Date().toISOString() };
